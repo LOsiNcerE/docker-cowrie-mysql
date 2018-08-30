@@ -26,8 +26,6 @@ RUN su - cowrie -c "\
         pip install --upgrade -r /cowrie/cowrie-git/requirements.txt && \
         rm -r ~/.cache/pip"
 
-COPY cowrie.cfg etc/cowrie.cfg
-
 FROM debian:stretch-slim
 MAINTAINER Michel Oosterhof <michel@oosterhof.net>
 RUN groupadd -r -g 1000 cowrie && \
@@ -44,7 +42,6 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     rm -rf /var/lib/apt/lists/*
 
 COPY --chown=cowrie:cowrie --from=builder /cowrie /cowrie
-COPY ./cowrie.cfg /cowrie/cowrie-git/etc/cowrie.cfg
 
 USER cowrie
 WORKDIR /cowrie/cowrie-git

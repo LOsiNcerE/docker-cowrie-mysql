@@ -8,6 +8,8 @@ services:
     restart: always
     depends_on: 
       - db
+    volumes:
+      - ./cowrie-etc:/cowrie/cowrie-git/etc
     ports:
       - 22:2222
 
@@ -18,7 +20,5 @@ services:
     restart: always
     volumes:
       - ./db_data:/var/lib/mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: root
     ports:
       - 3306:3306
