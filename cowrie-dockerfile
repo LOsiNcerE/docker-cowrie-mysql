@@ -1,12 +1,11 @@
 FROM debian:stretch-slim as builder
-MAINTAINER Michel Oosterhof <michel@oosterhof.net>
 RUN groupadd -r -g 1000 cowrie && \
     useradd -r -u 1000 -d /cowrie -m -g cowrie cowrie
 
 # Set up Debian prereqs
 RUN export DEBIAN_FRONTEND=noninteractive; \
     buildenv='libssl-dev libffi-dev' && \
-    needtoSetup='python3-pip python3-dev python3 gcc git virtualenv python3-virtualenv' && \
+    needtoSetup='python3-pip python3-dev python python3 gcc git virtualenv python3-virtualenv default-libmysqlclient-dev python-mysqldb libmariadbclient-dev' && \
     apt-get update && \
     apt-get install -y \
         -o APT::Install-Suggests=false \
@@ -23,11 +22,13 @@ RUN su - cowrie -c "\
         pip install --upgrade pip && \
         pip install --upgrade cffi && \
         pip install --upgrade setuptools && \
+        # Output to MySQL
+        pip install --upgrade mysqlclient && \ 
+        #end
         pip install --upgrade -r /cowrie/cowrie-git/requirements.txt && \
         rm -r ~/.cache/pip"
 
 FROM debian:stretch-slim
-MAINTAINER Michel Oosterhof <michel@oosterhof.net>
 RUN groupadd -r -g 1000 cowrie && \
     useradd -r -u 1000 -d /cowrie -m -g cowrie cowrie
 
