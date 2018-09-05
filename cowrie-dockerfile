@@ -4,13 +4,13 @@ RUN groupadd -r -g 1000 cowrie && \
 
 # Set up Debian prereqs
 RUN export DEBIAN_FRONTEND=noninteractive; \
-    buildenv='libssl-dev libffi-dev' && \
-    needtoSetup='python3-pip python3-dev python python3 gcc git virtualenv python3-virtualenv default-libmysqlclient-dev python-mysqldb libmariadbclient-dev' && \
+    buildenv='libssl-dev libffi-dev default-libmysqlclient-dev libmariadbclient-dev' && \
+    needtoSetup='python3-pip python3-dev python python3 gcc git virtualenv python3-virtualenv python-mysqldb' && \
     apt-get update && \
     apt-get install -y \
         -o APT::Install-Suggests=false \
         -o APT::Install-Recommends=false \
-        $needtoSetup $buildenv && \
+        $buildenv $needtoSetup && \
     rm -rf /var/lib/apt/lists/*
 
 # Build a cowrie environment from github master HEAD.
@@ -22,15 +22,19 @@ RUN su - cowrie -c "\
         pip install --upgrade pip && \
         pip install --upgrade cffi && \
         pip install --upgrade setuptools && \
-        # Output to MySQL
-        pip install --upgrade mysqlclient && \ 
-        #end
         pip install --upgrade -r /cowrie/cowrie-git/requirements.txt && \
+        pip install --upgrade mysqlclient && \
         rm -r ~/.cache/pip"
+
 
 FROM debian:stretch-slim
 RUN groupadd -r -g 1000 cowrie && \
     useradd -r -u 1000 -d /cowrie -m -g cowrie cowrie
+
+#get the cowrie enviroment
+COPY --chown=cowrie:cowrie --from=builder /cowrie /cowrie
+#get the mysql .so
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libmariadbclient* /usr/lib/x86_64-linux-gnu/
 
 RUN export DEBIAN_FRONTEND=noninteractive; \
     buildenv='libssl1.1 libffi6' && \
@@ -39,10 +43,8 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     apt-get install -y \
         -o APT::Install-Suggests=false \
         -o APT::Install-Recommends=false \
-        $needtoSetup $buildenv && \
+        $buildenv $needtoSetup && \
     rm -rf /var/lib/apt/lists/*
-
-COPY --chown=cowrie:cowrie --from=builder /cowrie /cowrie
 
 USER cowrie
 WORKDIR /cowrie/cowrie-git
